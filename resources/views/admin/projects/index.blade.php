@@ -9,7 +9,7 @@
         <th scope="col">Tipo</th>
         <th scope="col">Nome cliente</th>
         <th scope="col">Testo</th>
-        <th scope="col">immagine</th>
+        <th scope="col">Tecnologie</th>
         
       </tr>
     </thead>
@@ -22,10 +22,12 @@
                 <td>{{$project->client_name}}</td>
                 <td>{{$project->summary}}</td>
                 <td>
-                  @if ($project->cover_image)
-                    <div>
-                        <img src="{{ asset('storage/' . $project->cover_image) }}" alt="{{ $project->name }}" style="width : 100px">
-                    </div>
+                  @if (count($project->technologies) > 0)
+                    @foreach ($project->technologies as $technology)
+                        {{ $technology->name }}
+                    @endforeach
+                  @else
+                      nessuna tecnologia assegnata
                   @endif
                 </td>
                 <td class="text-center">

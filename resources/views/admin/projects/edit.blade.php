@@ -45,6 +45,15 @@
         </select>
     </div>
 
+    @foreach ($technologies as $technology)
+        <div class="form-check">
+            <input class="form-check-input" @checked(in_array($technology->id, old('technologies', []))) name="technologies[]" type="checkbox" value="{{ $technology->id }}" id="technology-{{ $technology->id }}">
+            <label class="form-check-label" for="technology-{{ $technology->id }}">
+                {{ $technology->name }}
+            </label>
+        </div>
+    @endforeach
+
     <div class="form-group">
         <label for="summary">Summary:</label>
         <textarea class="form-control" id="summary" name="summary" rows="4" >{{$project->summary}}</textarea>

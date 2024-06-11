@@ -8,6 +8,7 @@ use App\Models\Project;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Type;
+use App\Models\Technology;
 
 class ProjectController extends Controller
 {
@@ -19,8 +20,9 @@ class ProjectController extends Controller
     public function index()
     {
         $projects= Project::all();
+        $technologies = Technology::all();
     
-        return view('admin.projects.index', compact('projects'));
+        return view('admin.projects.index', compact('projects','technologies'));
     }
 
     /**
@@ -31,7 +33,8 @@ class ProjectController extends Controller
     public function create()
     {    
         $types= Type::all();
-        return view('admin.projects.create', compact('types'));
+        $technologies = Technology::all();
+        return view('admin.projects.create', compact('types','technologies'));
     }
 
     /**
@@ -55,6 +58,9 @@ class ProjectController extends Controller
     
         
         $newProject->save();
+        if($request->has('technologies')) {
+            $newProject->technologies()->attach($formData['technologies']);
+        }
 
         return redirect()->route('admin.projects.show', ['project' => $newProject->id]);
     }
@@ -82,8 +88,10 @@ class ProjectController extends Controller
     {
         $project= Project::findOrFail($id);
         $types= Type::all();
+        $technologies = Technology::all();
 
-        return view('admin.projects.edit', compact('project','types') );
+
+        return view('admin.projects.edit', compact('project','types','technologies') );
     }
 
     /**
@@ -95,7 +103,7 @@ class ProjectController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validatedData = $this->validateProjectData($request);
+        $validatedData = $this->validateProjectDataUpdate($request);
         $project = Project::findOrFail($id);
         $formData = $request->all();
     
@@ -114,6 +122,10 @@ class ProjectController extends Controller
     
         // Aggiorna il progetto con i nuovi dati
         $project->update($formData);
+
+        if($request->has('technologies')) {
+            $project->technologies()->sync($formData['technologies']);
+        }
     
         return redirect()->route('admin.projects.show', ['project' => $project->id]);
     }
@@ -134,7 +146,24 @@ class ProjectController extends Controller
     private function validateProjectData(Request $request)
     {
         return $request->validate([
-            'name' => 'required|min:5|max:250',
+            'name' => 'required|string|max:255|unique:projects,name',
+            'client_name' => 'required|string',
+            'summary' => 'nullable|string', 
+            'type_id' => 'nullable|exists:types,id',
+        ], [
+            'name.required'=> 'Il campo nome è obbligatorio.',
+            'name.min' => 'Il nome deve contenere almeno 5 caratteri.',
+            'name.unique' => 'il nome del progetto è gia presente ',
+            'name.max' => 'Il nome non può superare i 15 caratteri.',
+            'client_name.required'=> 'Il campo nome cliente è obbligatorio.',
+            'summary.string' => 'Il campo sommario deve essere una stringa.', 
+        ]);
+    }
+
+    private function validateProjectDataUpdate(Request $request)
+    {
+        return $request->validate([
+            'name' => 'required|string|max:255|',
             'client_name' => 'required|string',
             'summary' => 'nullable|string', 
             'type_id' => 'nullable|exists:types,id',
